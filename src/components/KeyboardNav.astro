@@ -1,0 +1,64 @@
+---
+import { PageFrame } from '@astrojs/starlight/components';
+// Componente para la navegación por teclado
+---
+
+<PageFrame>
+  <slot />
+</PageFrame>
+
+<script>
+  console.log('Script cargado desde componente');
+
+  // Esperar a que el DOM esté completamente cargado
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM cargado desde componente');
+
+    // Obtener todas las páginas del sidebar
+    const getSidebarItems = () => {
+      console.log('Buscando enlaces en el sidebar');
+      const sidebarLinks = Array.from(document.querySelectorAll('nav[aria-label="Main"] a'));
+      console.log('Enlaces encontrados:', sidebarLinks.length);
+      return sidebarLinks.map(link => ({
+        href: link.getAttribute('href'),
+        element: link
+      })).filter(item => item.href);
+    };
+
+    // Encontrar la página actual en el sidebar
+    const findCurrentPageIndex = (items) => {
+      const currentPath = window.location.pathname;
+      return items.findIndex(item => item.href === currentPath);
+    };
+
+    // Navegar a la página anterior o siguiente
+    const navigateToPage = (direction) => {
+      const items = getSidebarItems();
+      const currentIndex = findCurrentPageIndex(items);
+
+      if (currentIndex === -1) return;
+
+      const targetIndex = currentIndex + direction;
+      if (targetIndex >= 0 && targetIndex < items.length) {
+        window.location.href = items[targetIndex].href;
+      }
+    };
+
+    // Manejar eventos de teclado
+    document.addEventListener('keydown', (event) => {
+      // Ignorar si el usuario está escribiendo en un campo de texto
+      if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      switch (event.key) {
+        case 'ArrowUp':
+          navigateToPage(-1);
+          break;
+        case 'ArrowDown':
+          navigateToPage(1);
+          break;
+      }
+    });
+  });
+</script>
